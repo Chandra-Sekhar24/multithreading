@@ -1,52 +1,42 @@
-# Prerequisites
-*.d
+#include <stdio.h>
+#include <stdlib.h>
+#include <pthread.h>
+typedef struct {
+    int data;
+} Data;
+pthread_mutex_t mutex=
+PTHREAD_MUTEX_INITIALIZER;
+void* processData(void* arg)
+ {
+    Data* data = (Data*)arg;
+    pthread_mutex_lock(&mutex);
+    printf("Thread processing data: %d\n", data->data);
+    pthread_mutex_unlock(&mutex);
+    return NULL;
+}
 
-# Object files
-*.o
-*.ko
-*.obj
-*.elf
+int main() {
+    Data data1 = {1};
+    Data data2 = {2};
+    pthread_t thread1, thread2;
+    if (pthread_create(&thread1, NULL, processData, (void*)&data1) != 0) {
+        perror("Error in creating thread 1");
+        return EXIT_FAILURE;
+    }
+    if (pthread_create(&thread2, NULL, processData, (void*)&data2) != 0) {
+        perror("Error in creating thread 2");
+        return EXIT_FAILURE;
+    }
+    if (pthread_join(thread1, NULL) != 0) {
+        perror("Error in joining thread 1");
+        return EXIT_FAILURE;
+    }
 
-# Linker output
-*.ilk
-*.map
-*.exp
+    if (pthread_join(thread2, NULL) != 0) {
+        perror("Error in joining thread 2");
+        return EXIT_FAILURE;
+    }
+    pthread_mutex_destroy(&mutex);
 
-# Precompiled Headers
-*.gch
-*.pch
-
-# Libraries
-*.lib
-*.a
-*.la
-*.lo
-
-# Shared objects (inc. Windows DLLs)
-*.dll
-*.so
-*.so.*
-*.dylib
-
-# Executables
-*.exe
-*.out
-*.app
-*.i*86
-*.x86_64
-*.hex
-
-# Debug files
-*.dSYM/
-*.su
-*.idb
-*.pdb
-
-# Kernel Module Compile Results
-*.mod*
-*.cmd
-.tmp_versions/
-modules.order
-Module.symvers
-Mkfile.old
-dkms.conf
+    return EXIT_SUCCESS;
+}
